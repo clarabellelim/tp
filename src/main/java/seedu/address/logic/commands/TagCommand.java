@@ -93,7 +93,7 @@ public class TagCommand extends Command {
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException("The person index is invalid.");
+            throw new CommandException("The patient index provided is invalid");
         }
 
         Person personToTag = lastShownList.get(targetIndex.getZeroBased());

@@ -7,6 +7,7 @@ import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.person.Appointment;
 import seedu.address.model.person.EmergencyPerson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -56,6 +57,8 @@ public interface Model {
 
     /** Returns the AddressBook */
     ReadOnlyAddressBook getAddressBook();
+
+    ReadOnlyArchivedBook getArchivedBook();
 
     /**
      * Returns true if a person with the same identity as {@code person} exists in the address book.
@@ -116,4 +119,31 @@ public interface Model {
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
 
+    void updateArchivedFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Archives the specified person by adding them to the archive list
+     */
+    void archivePerson(Person person);
+
+    /**
+     * Remove the specified person from the archive list
+     * and add them back to AddressBook
+     */
+    void unarchivePerson(Person person);
+
+    /** Returns an unmodifiable view of the filtered archived list */
+    ObservableList<Person> getFilteredArchivedPersonList();
+
+    boolean hasSchedule(Appointment appointment);
+
+    /**
+     * Sorts the person list by name in alphabetical order.
+     */
+    void sortPersonListByName();
+
+    /**
+     * Sorts the person list by appointment date with earliest first.
+     */
+    void sortPersonListByAppointment();
 }

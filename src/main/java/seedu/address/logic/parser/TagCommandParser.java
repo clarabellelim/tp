@@ -19,10 +19,20 @@ import seedu.address.model.tag.Tag;
  */
 public class TagCommandParser implements Parser<TagCommand> {
 
+    public static final String MESSAGE_INVALID_TAG_PREFIX = "Invalid tag prefix. Only ta/, tc/, and ti/ are allowed.";
+
     @Override
     public TagCommand parse(String args) throws ParseException {
+        // If no arguments are provided after the index, throw invalid command format
+        if (args.trim().split("\\s+").length == 1) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, TagCommand.MESSAGE_USAGE));
+        }
+
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_ALLERGY,
                 PREFIX_CONDITION, PREFIX_INSURANCE, PREFIX_TAG_DELETE, PREFIX_TAG_EDIT);
+
+        // Check if any invalid prefixes are present in the command
+        checkForInvalidPrefixes(args);
 
         if (argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, TagCommand.MESSAGE_USAGE));
@@ -55,6 +65,12 @@ public class TagCommandParser implements Parser<TagCommand> {
             newTag = new Tag(split[1].trim());
         }
 
+        // Ensure no tags are being added, deleted, or edited
+        if (allergies.isEmpty() && conditions.isEmpty() && insurances.isEmpty()
+                && tagsToDelete.isEmpty() && !isEditTagPresent) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, TagCommand.MESSAGE_USAGE));
+        }
+
         // Ensure adding, deleting, and editing cannot happen together
         if (!tagsToDelete.isEmpty() && (!allergies.isEmpty() || !conditions.isEmpty() || !insurances.isEmpty())) {
             throw new ParseException("Cannot add and delete tags in the same command.");
@@ -67,5 +83,35 @@ public class TagCommandParser implements Parser<TagCommand> {
         }
 
         return new TagCommand(index, allergies, conditions, insurances, tagsToDelete, oldTag, newTag);
+    }
+
+    /**
+     * Checks if any invalid tag prefixes are present in the command.
+     * Only ta/, tc/, and ti/ are valid prefixes.
+     *
+     * @param args the command arguments
+     * @throws ParseException if an invalid prefix is detected
+     */
+    private void checkForInvalidPrefixes(String args) throws ParseException {
+        // Extract all prefixes from the command
+        String[] parts = args.trim().split("\\s+");
+
+        for (String part : parts) {
+            if (part.contains("/")) {
+                String prefix = part.split("/")[0] + "/";
+
+                // Skip if it's a valid prefix
+                if (prefix.equals(PREFIX_ALLERGY.toString())
+                        || prefix.equals(PREFIX_CONDITION.toString())
+                        || prefix.equals(PREFIX_INSURANCE.toString())
+                        || prefix.equals(PREFIX_TAG_DELETE.toString())
+                        || prefix.equals(PREFIX_TAG_EDIT.toString())) {
+                    continue;
+                }
+
+                // If we get here, we found an invalid prefix
+                throw new ParseException(MESSAGE_INVALID_TAG_PREFIX);
+            }
+        }
     }
 }

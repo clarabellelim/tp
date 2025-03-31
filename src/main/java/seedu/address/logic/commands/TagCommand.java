@@ -18,7 +18,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 
 /**
- * Command that manages adding, deleting, or editing tags for a person in HealthSync.
+ * Command that manages adding or deleting tags for a person in HealthSync.
  * This command allows for the manipulation of tags such as allergies, conditions, and insurances
  * associated with a specific person in the HealthSync application.
  */
@@ -26,20 +26,17 @@ public class TagCommand extends Command {
 
     public static final String COMMAND_WORD = "tag";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-          + ": Adds, deletes, or edits different types of tags to an existing patient in HealthSync.\n"
+          + ": Adds or deletes different types of tags to an existing patient in HealthSync.\n"
           + "Parameters:\n"
             + "  Adding tags: INDEX " + PREFIX_ALLERGY + "TAG " + PREFIX_CONDITION + "TAG " + PREFIX_INSURANCE + "TAG\n"
             + "  Deleting a tag: INDEX td/TAG\n"
-            + "  Editing a tag: INDEX te/OLD_TAG=NEW_TAG\n"
           + "Example:\n"
             + "  " + COMMAND_WORD + " 1 " + PREFIX_ALLERGY + "Peanuts\n"
             + "  " + COMMAND_WORD + " 1 " + PREFIX_CONDITION + "Asthma\n"
             + "  " + COMMAND_WORD + " 1 " + PREFIX_INSURANCE + "Medisave\n"
-            + "  " + COMMAND_WORD + " td/Peanuts\n"
-            + "  " + COMMAND_WORD + " te/Medisave=Prudential";
+            + "  " + COMMAND_WORD + " td/Peanuts\n";
 
     public static final String MESSAGE_ADD_SUCCESS = "Tags added to patient: %1$s";
-    public static final String MESSAGE_EDIT_SUCCESS = "Tag edited to patient: %1$s";
     public static final String MESSAGE_DELETE_SUCCESS = "Tag deleted from patient: %1$s";
     public static final String MESSAGE_DUPLICATE_TAGS = "Some tags are already in the patient's tag list";
     public static final String MESSAGE_TAG_NOT_FOUND = "Tag not found in the patient's tag list";
@@ -49,8 +46,6 @@ public class TagCommand extends Command {
     private final Set<Tag> conditions;
     private final Set<Tag> insurances;
     private final Set<Tag> tagsToDelete;
-    private final Tag oldTag;
-    private final Tag newTag;
 
     /**
      * Constructs a TagCommand object to add, delete, or edit tags for a person at the specified index.
@@ -60,11 +55,9 @@ public class TagCommand extends Command {
      * @param conditions Set of condition tags to be added to the person.
      * @param insurances Set of insurance tags to be added to the person.
      * @param tagsToDelete Set of tags to be deleted from the person.
-     * @param oldTag The existing tag to be edited (if applicable).
-     * @param newTag The new tag to replace the old tag (if applicable).
      */
     public TagCommand(Index targetIndex, Set<Tag> allergies, Set<Tag> conditions, Set<Tag> insurances,
-                      Set<Tag> tagsToDelete, Tag oldTag, Tag newTag) {
+                      Set<Tag> tagsToDelete) {
         requireNonNull(targetIndex);
         requireNonNull(allergies);
         requireNonNull(conditions);
@@ -75,8 +68,6 @@ public class TagCommand extends Command {
         this.conditions = conditions;
         this.insurances = insurances;
         this.tagsToDelete = tagsToDelete;
-        this.oldTag = oldTag;
-        this.newTag = newTag;
     }
 
     /**
@@ -107,15 +98,6 @@ public class TagCommand extends Command {
                 personToTag = model.deleteTagFromPerson(personToTag, Collections.singleton(tagToDelete));
             }
             return new CommandResult(String.format(MESSAGE_DELETE_SUCCESS, personToTag));
-        }
-
-        if (oldTag != null && newTag != null) {
-            // Handle edit tag
-            if (!personToTag.getTags().contains(oldTag)) {
-                throw new CommandException(MESSAGE_TAG_NOT_FOUND);
-            }
-            personToTag = model.editTagForPerson(personToTag, oldTag, newTag);
-            return new CommandResult(String.format(MESSAGE_EDIT_SUCCESS, personToTag));
         }
 
         Set<Tag> allTags = mergeTags();

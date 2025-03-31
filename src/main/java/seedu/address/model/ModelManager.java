@@ -159,8 +159,6 @@ public class ModelManager implements Model {
         addressBook.addPerson(person);
     }
 
-
-
     //=========== Tag Command Methods ========================================================================
 
     @Override
@@ -301,7 +299,6 @@ public class ModelManager implements Model {
     }
 
     //=========== Schedule method =============================================================
-
 
     @Override
     public boolean hasSchedule(Appointment appointment) {

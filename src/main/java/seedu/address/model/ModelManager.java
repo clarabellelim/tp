@@ -158,7 +158,7 @@ public class ModelManager implements Model {
         archivedBook.unarchivePerson(person);
         addressBook.addPerson(person);
     }
-
+    
     //=========== Tag Command Methods ========================================================================
 
     @Override

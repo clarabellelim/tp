@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ALLERGY;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONDITION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG_DELETE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG_EDIT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.HashSet;
@@ -34,7 +33,7 @@ public class TagCommandParserTest {
         expectedConditions.add(new Tag("Asthma"));
 
         TagCommand expectedTagCommand = new TagCommand(INDEX_FIRST_PERSON, expectedAllergies, expectedConditions,
-                new HashSet<>(), new HashSet<>(), null, null);
+                new HashSet<>(), new HashSet<>());
 
         assertEquals(tagCommand, expectedTagCommand);
     }
@@ -49,33 +48,9 @@ public class TagCommandParserTest {
         tagsToDelete.add(new Tag("Peanuts"));
 
         TagCommand expectedTagCommand = new TagCommand(INDEX_FIRST_PERSON, new HashSet<>(), new HashSet<>(),
-                new HashSet<>(), tagsToDelete, null, null);
+                new HashSet<>(), tagsToDelete);
 
         assertEquals(tagCommand, expectedTagCommand);
-    }
-
-    // Test editing a tag
-    @Test
-    public void parse_editTag_success() throws ParseException {
-        String userInput = "1 " + PREFIX_TAG_EDIT + "Medisave=Prudential";
-        TagCommand tagCommand = parser.parse(userInput);
-
-        Tag oldTag = new Tag("Medisave");
-        Tag newTag = new Tag("Prudential");
-
-        TagCommand expectedTagCommand = new TagCommand(INDEX_FIRST_PERSON, new HashSet<>(), new HashSet<>(),
-                new HashSet<>(), new HashSet<>(), oldTag, newTag);
-
-        assertEquals(tagCommand, expectedTagCommand);
-    }
-
-    // Test invalid format for editing a tag
-    @Test
-    public void parse_invalidEditTag_throwsParseException() {
-        String userInput = "1 " + PREFIX_TAG_EDIT + "Medisave-Prudential";
-
-        // Check if the parser throws a ParseException
-        assertThrows(ParseException.class, () -> parser.parse(userInput));
     }
 
     // Test invalid index format

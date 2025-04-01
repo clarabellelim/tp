@@ -120,7 +120,7 @@ public class AddressBook implements ReadOnlyAddressBook {
 
     @Override
     public String toString() {
-        return persons.asUnmodifiableObservableList().size() + " persons";
+        return AddressBook.class.getCanonicalName() + "{persons=" + persons.asUnmodifiableObservableList() + "}";
     }
 
     @Override

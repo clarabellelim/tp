@@ -50,13 +50,18 @@ public class PersonBuilder {
     /**
      * Initializes the PersonBuilder with the data of {@code personToCopy}.
      */
+    /**
+     * Initializes the PersonBuilder with the data of {@code personToCopy}.
+     */
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
+        emergencyPerson = personToCopy.getEmergencyContact(); // Copy emergency person
     }
+
 
     /**
      * Sets the {@code Name} of the {@code Person} that we are building.
@@ -95,6 +100,14 @@ public class PersonBuilder {
      */
     public PersonBuilder withEmail(String email) {
         this.email = new Email(email);
+        return this;
+    }
+
+    /**
+     * Sets the {@code Emergency Contact} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withEmergencyPerson(String name, String phone, String relationship) {
+        this.emergencyPerson = new EmergencyPerson(new Name(name), new Phone(phone), new Relationship(relationship));
         return this;
     }
 

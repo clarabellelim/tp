@@ -110,15 +110,15 @@ class JsonAdaptedPerson {
         }
         final Address modelAddress = new Address(address);
 
-        if (appointment == null) {
-            throw new IllegalValueException(
-                    String.format(MISSING_FIELD_MESSAGE_FORMAT, Appointment.class.getSimpleName()));
-        }
+        // If appointment is null or empty, use a default valid appointment value.
+        String appointmentToUse = (appointment == null || appointment.trim().isEmpty())
+                ? "01-01-9999 00:00"
+                : appointment;
 
-        if ((appointment != "") && !Appointment.isValid(appointment)) {
+        if (!Appointment.isValid(appointmentToUse)) {
             throw new IllegalValueException(Appointment.MESSAGE_CONSTRAINTS);
         }
-        final Appointment modelAppointment = new Appointment(appointment);
+        final Appointment modelAppointment = new Appointment(appointmentToUse);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
 

@@ -7,6 +7,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_INSURANCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG_DELETE;
 
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.TagCommand;
@@ -69,22 +71,16 @@ public class TagCommandParser implements Parser<TagCommand> {
      * @throws ParseException if an invalid prefix is detected
      */
     private void checkForInvalidPrefixes(String args) throws ParseException {
-        // Extract all prefixes from the command
-        String[] parts = args.trim().split("\\s+");
-
-        for (String part : parts) {
-            if (part.contains("/")) {
-                String prefix = part.split("/")[0] + "/";
-
-                // Skip if it's a valid prefix
-                if (prefix.equals(PREFIX_ALLERGY.toString())
-                        || prefix.equals(PREFIX_CONDITION.toString())
-                        || prefix.equals(PREFIX_INSURANCE.toString())
-                        || prefix.equals(PREFIX_TAG_DELETE.toString())) {
-                    continue;
-                }
-
-                // If we get here, we found an invalid prefix
+        // This pattern will match tokens that look like a prefix,
+        // but will not break tokens that are inside quotes.
+        Pattern prefixPattern = Pattern.compile("(?<=\\s|^)(\\S+/)");
+        Matcher matcher = prefixPattern.matcher(args);
+        while (matcher.find()) {
+            String prefix = matcher.group(1);
+            if (!(prefix.equals(PREFIX_ALLERGY.toString())
+                    || prefix.equals(PREFIX_CONDITION.toString())
+                    || prefix.equals(PREFIX_INSURANCE.toString())
+                    || prefix.equals(PREFIX_TAG_DELETE.toString()))) {
                 throw new ParseException(MESSAGE_INVALID_TAG_PREFIX);
             }
         }

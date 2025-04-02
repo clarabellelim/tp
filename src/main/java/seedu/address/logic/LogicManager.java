@@ -144,11 +144,13 @@ public class LogicManager implements Logic {
     /**
      * Attempts to save data and logs any exceptions that occur.
      */
-    private void saveDataSafely() {
+    private void saveDataSafely() throws CommandException {
         try {
             saveData();
         } catch (Exception e) {
             logger.severe("Error saving data: " + e.getMessage());
+            throw e instanceof CommandException ? (CommandException) e
+                    : new CommandException(String.format(FILE_OPS_ERROR_FORMAT, e.getMessage()), e);
         }
     }
 

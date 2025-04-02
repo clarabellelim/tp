@@ -8,45 +8,49 @@ import java.util.Objects;
  */
 public class Appointment implements Comparable<Appointment> {
     public static final String MESSAGE_CONSTRAINTS = "This must be DD-MM-YYYY HH:MM";
+    private static final String DEFAULT_DATE_STRING = "01-01-9999 00:00";
+    private static final DateTime DEFAULT_DATE = new DateTime(DEFAULT_DATE_STRING);
+
     public final String value;
     private final DateTime dateTime;
     private final String description;
 
     /**
-     * Constructs a {@code Schedule}.
+     * Constructs an {@code Appointment} with a specified date and description.
      *
-     * @param dateTime The date and time of the schedule.
+     * @param dateTime The date and time of the appointment.
      * @param description A brief description of the event.
      */
     public Appointment(DateTime dateTime, String description) {
-        this.dateTime = Objects.requireNonNull(dateTime);
-        this.description = Objects.requireNonNull(description);
-        this.value = dateTime.toString() + " " + description;
+        this.dateTime = Objects.requireNonNullElse(dateTime, DEFAULT_DATE);
+        this.description = Objects.requireNonNullElse(description, "No description");
+        this.value = this.dateTime.toString() + " " + this.description;
     }
 
     /**
-     * Constructs a {@code Schedule}.
+     * Constructs an {@code Appointment} with a default date.
      */
     public Appointment() {
-        this.dateTime = null;
-        this.description = "";
-        this.value = "";
+        this.dateTime = DEFAULT_DATE;
+        this.description = "No appointment";
+        this.value = DEFAULT_DATE.toString() + " " + description;
     }
 
     /**
-     * Constructs an {@code Address}.
+     * Constructs an {@code Appointment} from a string.
      *
-     * @param appointment A valid appointment.
+     * @param appointment A valid appointment string.
      */
     public Appointment(String appointment) {
-        if (appointment.equals("")) {
-            this.dateTime = null;
-            this.value = "";
+        if (appointment == null || appointment.isBlank()) {
+            this.dateTime = DEFAULT_DATE;
+            this.value = DEFAULT_DATE_STRING;
+            this.description = "No appointment";
         } else {
             this.dateTime = new DateTime(appointment);
             this.value = this.dateTime.toString();
+            this.description = "";
         }
-        this.description = "";
     }
 
     public static boolean isValid(String dateTime) {
@@ -61,6 +65,7 @@ public class Appointment implements Comparable<Appointment> {
         return description;
     }
 
+    @Override
     public int compareTo(Appointment other) {
         return this.dateTime.compareTo(other.dateTime);
     }
@@ -74,13 +79,6 @@ public class Appointment implements Comparable<Appointment> {
             return false;
         }
         Appointment otherAppointment = (Appointment) other;
-        if (dateTime == null && otherAppointment.dateTime == null) {
-            return true;
-        }
-
-        if (dateTime == null || otherAppointment.dateTime == null) {
-            return false;
-        }
         return dateTime.difference(otherAppointment.dateTime).abs().toMinutes() < 15.0;
     }
 
@@ -91,9 +89,6 @@ public class Appointment implements Comparable<Appointment> {
 
     @Override
     public String toString() {
-        if (dateTime == null) {
-            return "";
-        }
-        return dateTime.toString();
+        return dateTime.toString() + (description.isBlank() ? "" : " " + description);
     }
 }

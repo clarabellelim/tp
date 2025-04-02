@@ -8,8 +8,7 @@ import java.util.Objects;
  */
 public class Appointment implements Comparable<Appointment> {
     public static final String MESSAGE_CONSTRAINTS = "This must be DD-MM-YYYY HH:MM";
-    private static final String DEFAULT_DATE = "01-01-9999 00:00";
-
+    public final String value;
     private final DateTime dateTime;
     private final String description;
 
@@ -22,14 +21,16 @@ public class Appointment implements Comparable<Appointment> {
     public Appointment(DateTime dateTime, String description) {
         this.dateTime = Objects.requireNonNull(dateTime);
         this.description = Objects.requireNonNull(description);
+        this.value = dateTime.toString() + " " + description;
     }
 
     /**
      * Constructs a {@code Schedule}.
      */
     public Appointment() {
-        this.dateTime = new DateTime(DEFAULT_DATE);
+        this.dateTime = null;
         this.description = "";
+        this.value = "";
     }
 
     /**
@@ -38,10 +39,12 @@ public class Appointment implements Comparable<Appointment> {
      * @param appointment A valid appointment.
      */
     public Appointment(String appointment) {
-        if (appointment == null || appointment.trim().isEmpty()) {
-            this.dateTime = new DateTime(DEFAULT_DATE);
+        if (appointment.equals("")) {
+            this.dateTime = null;
+            this.value = "";
         } else {
             this.dateTime = new DateTime(appointment);
+            this.value = this.dateTime.toString();
         }
         this.description = "";
     }

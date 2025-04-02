@@ -59,10 +59,10 @@ public class AppointmentTest {
         DateTime dt = new DateTime("18-03-2026 10:00");
         Appointment appointment = new Appointment(dt, "Meeting");
         // toString() should delegate to DateTime's toString() if dateTime is not null.
-        assertEquals(dt.toString(), appointment.toString());
+        assertEquals(dt.toString() + " Meeting", appointment.toString());
 
-        // For a default Appointment (with null dateTime), toString should return an empty string.
+        // For a default Appointment (with null dateTime), toString should return default datetime.
         Appointment defaultAppointment = new Appointment();
-        assertEquals("", defaultAppointment.toString());
+        assertEquals("01-01-9999 00:00 No appointment", defaultAppointment.toString());
     }
 }

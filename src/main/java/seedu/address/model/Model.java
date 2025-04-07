@@ -62,9 +62,12 @@ public interface Model {
     ReadOnlyArchivedBook getArchivedBook();
 
     /**
-     * Returns true if a person with the same identity as {@code person} exists in the address book.
+     * Returns true if a person with the same identity as {@code person} exists in
+     * the address book.
      */
     boolean hasPerson(Person person);
+
+    boolean hasConflictingPerson(Person editedPerson, Person personToEdit);
 
     /**
      * Deletes the given person.
@@ -79,14 +82,16 @@ public interface Model {
     void addPerson(Person person);
 
     /**
-     * Add emergency contact to the given person {@code Person} with {@code emergencyPerson}.
+     * Add emergency contact to the given person {@code Person} with
+     * {@code emergencyPerson}.
      */
     void addEmergencyContactToPerson(Person person, EmergencyPerson emergencyPerson);
 
     /**
      * Replaces the given person {@code target} with {@code editedPerson}.
      * {@code target} must exist in the address book.
-     * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
+     * The person identity of {@code editedPerson} must not be the same as another
+     * existing person in the address book.
      */
     void setPerson(Person target, Person editedPerson);
 
@@ -100,22 +105,20 @@ public interface Model {
     /**
      * Adds tags to the given person.
      * @param person the person to add tags to
-     * @param tagsToAdd the tags to be added
      * @return the updated person with the new tags
      */
-    Person addTagsToPerson(Person person, Set<Tag> tagsToAdd);
+    Person addTagsToPerson(Person person, Set<Tag> allergies, Set<Tag> conditions,
+                           Set<Tag> insurances);
 
     // Deletes a tag from the person's tags
     Person deleteTagFromPerson(Person person, Set<Tag> tagToDelete);
-
-    // Edits a tag for the person (changes old tag to new tag)
-    Person editTagForPerson(Person person, Tag oldTag, Tag newTag);
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
 
     /**
-     * Updates the filter of the filtered person list to filter by the given {@code predicate}.
+     * Updates the filter of the filtered person list to filter by the given
+     * {@code predicate}.
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
@@ -132,10 +135,30 @@ public interface Model {
      */
     void undoAddressBook() throws CommandException;
 
+    boolean isLastCommandArchiveRelated();
+
+    void setLastCommandArchiveRelated(boolean isLastCommandArchiveRelated);
+
+    /**
+     * Checks if the address book can be redone.
+     * @return true if redo is possible, false otherwise.
+     */
+    boolean canRedoAddressBook();
+
+    /**
+     * Redoes the last command that modified the address book.
+     * Throws CommandException if no redo is possible.
+     */
+    void redoAddressBook() throws CommandException;
+
     /**
      * Commits the current state of the address book.
      */
     void commitAddressBook();
+
+    boolean isArchiveMode();
+
+    void setArchiveMode(boolean isArchiveMode);
 
     void updateArchivedFilteredPersonList(Predicate<Person> predicate);
 

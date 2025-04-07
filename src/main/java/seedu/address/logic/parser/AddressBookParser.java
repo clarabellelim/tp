@@ -20,6 +20,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListArchiveCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RedoCommand;
 import seedu.address.logic.commands.ScheduleCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.TagCommand;
@@ -88,7 +89,7 @@ public class AddressBookParser {
             return new FindCommandParser().parse(arguments);
 
         case ListCommand.COMMAND_WORD:
-            return new ListCommand();
+            return new ListCommand(arguments);
 
         case EmergencyCommand.COMMAND_WORD:
             return new EmergencyCommandParser().parse(arguments);
@@ -97,7 +98,7 @@ public class AddressBookParser {
             return new TagCommandParser().parse(arguments);
 
         case ExitCommand.COMMAND_WORD:
-            return new ExitCommand();
+            return new ExitCommandParser().parse(arguments);
 
         case HelpCommand.COMMAND_WORD:
             return new HelpCommand(userInput);
@@ -108,8 +109,11 @@ public class AddressBookParser {
         case UndoCommand.COMMAND_WORD:
             return new UndoCommandParser(model).parse(arguments);
 
+        case RedoCommand.COMMAND_WORD:
+            return new RedoCommandParser(model).parse(arguments);
+
         case ListArchiveCommand.COMMAND_WORD:
-            return new ListArchiveCommand();
+            return new ListArchiveCommand(arguments);
 
         case ArchiveCommand.COMMAND_WORD:
             return new ArchiveCommandParser().parse(arguments);

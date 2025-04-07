@@ -5,10 +5,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_ALLERGY;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONDITION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSURANCE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG_DELETE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG_EDIT;
 
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.TagCommand;
@@ -30,7 +29,7 @@ public class TagCommandParser implements Parser<TagCommand> {
         }
 
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_ALLERGY,
-                PREFIX_CONDITION, PREFIX_INSURANCE, PREFIX_TAG_DELETE);
+                PREFIX_CONDITION, PREFIX_INSURANCE, PREFIX_TAG_DELETE, PREFIX_TAG_EDIT);
 
         // Check if any invalid prefixes are present in the command
         checkForInvalidPrefixes(args);
@@ -42,7 +41,7 @@ public class TagCommandParser implements Parser<TagCommand> {
         // Parse index from the argument preamble
         Index index = ParserUtil.parseIndex(argMultimap.getPreamble());
 
-        // Check if there are tags to add or delete
+        // Check if there are tags to add, delete, or edit
         Set<Tag> allergies = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_ALLERGY));
         Set<Tag> conditions = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_CONDITION));
         Set<Tag> insurances = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_INSURANCE));
@@ -50,12 +49,13 @@ public class TagCommandParser implements Parser<TagCommand> {
         // Check for delete tags (td/)
         Set<Tag> tagsToDelete = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG_DELETE));
 
-        // Ensure no tags are being added or deleted
-        if (allergies.isEmpty() && conditions.isEmpty() && insurances.isEmpty() && tagsToDelete.isEmpty()) {
+        // Ensure no tags are being added, deleted, or edited
+        if (allergies.isEmpty() && conditions.isEmpty() && insurances.isEmpty()
+                && tagsToDelete.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, TagCommand.MESSAGE_USAGE));
         }
 
-        // Ensure adding and deleting cannot happen together
+        // Ensure adding, deleting, and editing cannot happen together
         if (!tagsToDelete.isEmpty() && (!allergies.isEmpty() || !conditions.isEmpty() || !insurances.isEmpty())) {
             throw new ParseException("Cannot add and delete tags in the same command.");
         }
@@ -71,16 +71,20 @@ public class TagCommandParser implements Parser<TagCommand> {
      * @throws ParseException if an invalid prefix is detected
      */
     private void checkForInvalidPrefixes(String args) throws ParseException {
-        // This pattern will match tokens that look like a prefix,
-        // but will not break tokens that are inside quotes.
-        Pattern prefixPattern = Pattern.compile("(?<=\\s|^)(\\S+/)");
-        Matcher matcher = prefixPattern.matcher(args);
-        while (matcher.find()) {
-            String prefix = matcher.group(1);
-            if (!(prefix.equals(PREFIX_ALLERGY.toString())
-                    || prefix.equals(PREFIX_CONDITION.toString())
-                    || prefix.equals(PREFIX_INSURANCE.toString())
-                    || prefix.equals(PREFIX_TAG_DELETE.toString()))) {
+        // Extract all prefixes from the command
+        String[] parts = args.trim().split("\\s+");
+
+        for (String part : parts) {
+            if (part.contains("/")) {
+                String prefix = part.split("/")[0] + "/";
+
+                if (prefix.equals(PREFIX_ALLERGY.toString())
+                        || prefix.equals(PREFIX_CONDITION.toString())
+                        || prefix.equals(PREFIX_INSURANCE.toString())
+                        || prefix.equals(PREFIX_TAG_DELETE.toString())) {
+                    continue;
+                }
+
                 throw new ParseException(MESSAGE_INVALID_TAG_PREFIX);
             }
         }

@@ -18,7 +18,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 
 /**
- * Command that manages adding or deleting tags for a person in HealthSync.
+ * Command that manages adding, deleting, or editing tags for a person in HealthSync.
  * This command allows for the manipulation of tags such as allergies, conditions, and insurances
  * associated with a specific person in the HealthSync application.
  */
@@ -26,15 +26,15 @@ public class TagCommand extends Command {
 
     public static final String COMMAND_WORD = "tag";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-          + ": Adds or deletes different types of tags to an existing patient in HealthSync.\n"
-          + "Parameters:\n"
+            + ": Adds, deletes, or edits different types of tags to an existing patient in HealthSync.\n"
+            + "Parameters:\n"
             + "  Adding tags: INDEX " + PREFIX_ALLERGY + "TAG " + PREFIX_CONDITION + "TAG " + PREFIX_INSURANCE + "TAG\n"
             + "  Deleting a tag: INDEX td/TAG\n"
-          + "Example:\n"
+            + "Example:\n"
             + "  " + COMMAND_WORD + " 1 " + PREFIX_ALLERGY + "Peanuts\n"
             + "  " + COMMAND_WORD + " 1 " + PREFIX_CONDITION + "Asthma\n"
             + "  " + COMMAND_WORD + " 1 " + PREFIX_INSURANCE + "Medisave\n"
-            + "  " + COMMAND_WORD + " td/Peanuts\n";
+            + "  " + COMMAND_WORD + " 1 " + " td/Peanuts\n";
 
     public static final String MESSAGE_ADD_SUCCESS = "Tags added to patient: %1$s";
     public static final String MESSAGE_DELETE_SUCCESS = "Tag deleted from patient: %1$s";
@@ -84,7 +84,7 @@ public class TagCommand extends Command {
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException("The patient index provided is invalid");
+            throw new CommandException("The person index is invalid.");
         }
 
         Person personToTag = lastShownList.get(targetIndex.getZeroBased());
@@ -92,14 +92,16 @@ public class TagCommand extends Command {
         if (!tagsToDelete.isEmpty()) {
             // Handle delete tag
             for (Tag tagToDelete : tagsToDelete) {
-                if (!personToTag.getTags().contains(tagToDelete)) {
+                // With this implementation:
+                boolean tagFound = personToTag.getTags().stream().anyMatch(tagSet -> tagSet.contains(tagToDelete));
+                if (!tagFound) {
                     throw new CommandException(MESSAGE_TAG_NOT_FOUND);
                 }
+                model.setLastCommandArchiveRelated(false);
                 personToTag = model.deleteTagFromPerson(personToTag, Collections.singleton(tagToDelete));
             }
             return new CommandResult(String.format(MESSAGE_DELETE_SUCCESS, personToTag));
         }
-
         Set<Tag> allTags = mergeTags();
 
         // Check for duplicate tags before adding
@@ -107,7 +109,8 @@ public class TagCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_TAGS);
         }
 
-        Person updatedPerson = model.addTagsToPerson(personToTag, allTags);
+        model.setLastCommandArchiveRelated(false);
+        Person updatedPerson = model.addTagsToPerson(personToTag, allergies, conditions, insurances);
         return new CommandResult(String.format(MESSAGE_ADD_SUCCESS, updatedPerson));
     }
 
@@ -154,10 +157,10 @@ public class TagCommand extends Command {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-            .add("targetIndex", targetIndex)
-            .add("allergies", allergies)
-            .add("conditions", conditions)
-            .add("insurances", insurances)
-            .toString();
+                .add("targetIndex", targetIndex)
+                .add("allergies", allergies)
+                .add("conditions", conditions)
+                .add("insurances", insurances)
+                .toString();
     }
 }

@@ -1,5 +1,6 @@
 package seedu.address.logic.commands;
 
+
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -136,6 +137,16 @@ public class AddCommandTest {
         }
 
         @Override
+        public void setArchiveMode(boolean bool) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean isArchiveMode() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void setAddressBook(ReadOnlyAddressBook newData) {
             throw new AssertionError("This method should not be called.");
         }
@@ -156,6 +167,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public boolean hasConflictingPerson(Person editedPerson, Person personToEdit) {
+            return false;
+        }
+
+        @Override
         public void deletePerson(Person target) {
             throw new AssertionError("This method should not be called.");
         }
@@ -171,17 +187,13 @@ public class AddCommandTest {
         }
 
         @Override
-        public Person addTagsToPerson(Person person, Set<Tag> tagsToAdd) {
+        public Person addTagsToPerson(Person person, Set<Tag> allergies, Set<Tag> conditions,
+                               Set<Tag> insurances) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
         public Person deleteTagFromPerson(Person person, Set<Tag> tagToDelete) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public Person editTagForPerson(Person person, Tag oldTag, Tag newTag) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -230,8 +242,40 @@ public class AddCommandTest {
         }
 
         @Override
+        public void commitAddressBook() {
+            throw new AssertionError("This method should not be called");
+        }
+
+        public void undoAddressBook() {
+            throw new AssertionError("This method should not be called");
+        }
+
+        @Override
+        public boolean isLastCommandArchiveRelated() {
+            return false;
+        }
+
+        @Override
+        public void setLastCommandArchiveRelated(boolean isLastCommandArchiveRelated) {
+        }
+
+        public boolean canUndoAddressBook() {
+            throw new AssertionError("This method should not be called");
+        }
+
+        @Override
         public ReadOnlyAddressBook getEmptyAddressBook() {
             return new AddressBook();
+        }
+
+        @Override
+        public boolean canRedoAddressBook() {
+            throw new AssertionError("This method should not be called");
+        }
+
+        @Override
+        public void redoAddressBook() {
+            throw new AssertionError("This method should not be called");
         }
     }
 

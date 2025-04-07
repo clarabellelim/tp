@@ -7,6 +7,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 
 /**
  * Wraps an AddressBook with undo/redo functionality.
+ * Maintains a history of address book states to support undo operations.
  */
 public class VersionedAddressBook extends AddressBook {
     private final List<ReadOnlyAddressBook> addressBookStateList;
@@ -27,22 +28,26 @@ public class VersionedAddressBook extends AddressBook {
     }
 
     /**
-   * Saves a copy of the current address book state.
-   */
+     * Saves a copy of the current address book state.
+     * Adds the current state to the history and removes any forward states.
+     */
     public void commit() {
-        // Remove any states after current pointer
         while (currentStatePointer < addressBookStateList.size() - 1) {
             addressBookStateList.remove(addressBookStateList.size() - 1);
         }
 
-        // Create and add a deep copy of the current state
         addressBookStateList.add(new AddressBook(this));
         currentStatePointer++;
+
+        while (addressBookStateList.size() > 2) {
+            addressBookStateList.remove(0);
+            currentStatePointer--;
+        }
     }
 
     /**
-   * Restores the previous address book state.
-   */
+     * Restores the previous address book state.
+     */
     public void undo() throws CommandException {
         if (!canUndo()) {
             throw new CommandException("Cannot undo");
@@ -52,9 +57,28 @@ public class VersionedAddressBook extends AddressBook {
     }
 
     /**
-   * Returns true if undo is possible.
-   */
+     * Returns true if undo is possible.
+     * Undo is possible if there is a previous state to return to.
+     */
     public boolean canUndo() {
         return currentStatePointer > 0;
+    }
+
+    /**
+     * Restores the next address book state.
+     */
+    public void redo() throws CommandException {
+        if (!canRedo()) {
+            throw new CommandException("Cannot redo");
+        }
+        currentStatePointer++;
+        resetData(addressBookStateList.get(currentStatePointer));
+    }
+
+    /**
+     * Returns true if redo is possible.
+     */
+    public boolean canRedo() {
+        return currentStatePointer < addressBookStateList.size() - 1;
     }
 }

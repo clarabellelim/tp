@@ -27,7 +27,8 @@ import seedu.address.model.tag.Tag;
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
-
+    private boolean isArchiveMode = false;
+    private boolean isLastCommandArchiveRelated = false;
     private final AddressBook addressBook;
     private final VersionedAddressBook versionedAddressBook;
     private final UserPrefs userPrefs;
@@ -39,7 +40,7 @@ public class ModelManager implements Model {
      * Initializes a ModelManager with the given addressBook and userPrefs.
      */
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs,
-                        ReadOnlyArchivedBook archivedBook) {
+            ReadOnlyArchivedBook archivedBook) {
         requireAllNonNull(addressBook, userPrefs, archivedBook);
 
         logger.fine("Initializing with address book: " + addressBook
@@ -59,7 +60,8 @@ public class ModelManager implements Model {
         this(new AddressBook(), new UserPrefs(), new ArchivedBook());
     }
 
-    //=========== UserPrefs ==================================================================================
+    // =========== UserPrefs
+    // ==================================================================================
 
     @Override
     public void setUserPrefs(ReadOnlyUserPrefs userPrefs) {
@@ -94,7 +96,8 @@ public class ModelManager implements Model {
         userPrefs.setAddressBookFilePath(addressBookFilePath);
     }
 
-    //=========== AddressBook Undo Methods ==================================================================
+    // =========== AddressBook Undo/Redo Methods
+    // ==================================================================
 
     @Override
     public void commitAddressBook() {
@@ -111,7 +114,26 @@ public class ModelManager implements Model {
         return versionedAddressBook.canUndo();
     }
 
-    //=========== AddressBook Methods ========================================================================
+    @Override
+    public void redoAddressBook() throws CommandException {
+        versionedAddressBook.redo();
+    }
+
+    @Override
+    public boolean canRedoAddressBook() {
+        return versionedAddressBook.canRedo();
+    }
+
+    public boolean isLastCommandArchiveRelated() {
+        return isLastCommandArchiveRelated;
+    }
+
+    public void setLastCommandArchiveRelated(boolean isLastCommandArchiveRelated) {
+        this.isLastCommandArchiveRelated = isLastCommandArchiveRelated;
+    }
+
+    // =========== AddressBook Methods
+    // ========================================================================
 
     @Override
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
@@ -132,7 +154,15 @@ public class ModelManager implements Model {
     @Override
     public boolean hasPerson(Person person) {
         requireNonNull(person);
-        return versionedAddressBook.hasPerson(person);
+        return versionedAddressBook.hasPerson(person) || archivedBook.hasPerson(person);
+    }
+
+    @Override
+    public boolean hasConflictingPerson(Person edited, Person original) {
+        return versionedAddressBook.getPersonList().stream()
+                .filter(p -> !p.equals(original))
+                .anyMatch(p -> p.getName().equals(edited.getName())
+                        && (p.getPhone().equals(edited.getPhone()) || p.getEmail().equals(edited.getEmail())));
     }
 
     @Override
@@ -163,6 +193,14 @@ public class ModelManager implements Model {
         setPerson(person, updatedPerson);
     }
 
+    public boolean isArchiveMode() {
+        return isArchiveMode;
+    }
+
+    public void setArchiveMode(boolean isArchiveMode) {
+        this.isArchiveMode = isArchiveMode;
+    }
+
     @Override
     public void archivePerson(Person person) {
         requireNonNull(person);
@@ -184,7 +222,8 @@ public class ModelManager implements Model {
         commitAddressBook();
     }
 
-    //=========== Tag Command Methods ========================================================================
+    // =========== Tag Command Methods
+    // ========================================================================
 
     @Override
     public Optional<Person> findPersonByName(Name name) {
@@ -195,14 +234,16 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public Person addTagsToPerson(Person person, Set<Tag> tagsToAdd) {
-        requireAllNonNull(person, tagsToAdd);
+    public Person addTagsToPerson(Person person, Set<Tag> allergies, Set<Tag> conditions,
+                                  Set<Tag> insurances) {
+        requireAllNonNull(person);
 
-        // Create a new set with all existing tags
-        Set<Tag> updatedTags = new HashSet<>(person.getTags());
-
-        // Add the new tags
-        updatedTags.addAll(tagsToAdd);
+        Set<Tag> currentAllergies = new HashSet<>(person.getAllergyTags());
+        currentAllergies.addAll(allergies);
+        Set<Tag> currentConditions = new HashSet<>(person.getConditionTags());
+        currentConditions.addAll(conditions);
+        Set<Tag> currentInsurances = new HashSet<>(person.getInsuranceTags());
+        currentInsurances.addAll(insurances);
 
         // Create a new person with the updated tags
         Person updatedPerson = new Person(
@@ -210,10 +251,11 @@ public class ModelManager implements Model {
                 person.getPhone(),
                 person.getEmail(),
                 person.getAddress(),
-                updatedTags,
+                currentAllergies,
+                currentConditions,
+                currentInsurances,
                 person.getAppointment(),
-                person.getEmergencyContact()
-        );
+                person.getEmergencyContact());
 
         // Update the person in the address book
         setPerson(person, updatedPerson);
@@ -225,11 +267,14 @@ public class ModelManager implements Model {
     public Person deleteTagFromPerson(Person person, Set<Tag> tagsToDelete) {
         requireAllNonNull(person, tagsToDelete);
 
-        // Create a new set with all existing tags
-        Set<Tag> updatedTags = new HashSet<>(person.getTags());
+        Set<Tag> currentAllergies = new HashSet<>(person.getAllergyTags());
+        Set<Tag> currentConditions = new HashSet<>(person.getConditionTags());
+        Set<Tag> currentInsurances = new HashSet<>(person.getInsuranceTags());
 
         // Remove the tags to delete
-        updatedTags.removeAll(tagsToDelete);
+        currentAllergies.removeAll(tagsToDelete);
+        currentConditions.removeAll(tagsToDelete);
+        currentInsurances.removeAll(tagsToDelete);
 
         // Create a new person with the updated tags
         Person updatedPerson = new Person(
@@ -237,10 +282,11 @@ public class ModelManager implements Model {
                 person.getPhone(),
                 person.getEmail(),
                 person.getAddress(),
-                updatedTags,
+                currentAllergies,
+                currentConditions,
+                currentInsurances,
                 person.getAppointment(),
-                person.getEmergencyContact()
-        );
+                person.getEmergencyContact());
 
         // Update the person in the address book
         setPerson(person, updatedPerson);
@@ -248,38 +294,12 @@ public class ModelManager implements Model {
         return updatedPerson;
     }
 
-    @Override
-    public Person editTagForPerson(Person person, Tag oldTag, Tag newTag) {
-        requireAllNonNull(person, oldTag, newTag);
-
-        // Create a new set with all existing tags
-        Set<Tag> updatedTags = new HashSet<>(person.getTags());
-
-        // Remove the old tag and add the new tag
-        updatedTags.remove(oldTag);
-        updatedTags.add(newTag);
-
-        // Create a new person with the updated tags
-        Person updatedPerson = new Person(
-                person.getName(),
-                person.getPhone(),
-                person.getEmail(),
-                person.getAddress(),
-                updatedTags,
-                person.getAppointment(),
-                person.getEmergencyContact()
-        );
-
-        // Update the person in the address book
-        setPerson(person, updatedPerson);
-
-        return updatedPerson;
-    }
-
-    //=========== Filtered Person List Accessors =============================================================
+    // =========== Filtered Person List Accessors
+    // =============================================================
 
     /**
-     * Returns an unmodifiable view of the list of {@code Person} backed by the internal list of
+     * Returns an unmodifiable view of the list of {@code Person} backed by the
+     * internal list of
      * {@code versionedAddressBook}
      */
     @Override
@@ -322,7 +342,8 @@ public class ModelManager implements Model {
                 && filteredArchivedPersons.equals(otherModelManager.filteredArchivedPersons);
     }
 
-    //=========== Schedule method =============================================================
+    // =========== Schedule method
+    // =============================================================
 
     @Override
     public boolean hasSchedule(Appointment appointment) {

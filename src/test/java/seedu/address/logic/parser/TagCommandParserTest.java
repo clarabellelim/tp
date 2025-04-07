@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ALLERGY;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CONDITION;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG_DELETE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG_EDIT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.HashSet;
@@ -49,8 +50,16 @@ public class TagCommandParserTest {
 
         TagCommand expectedTagCommand = new TagCommand(INDEX_FIRST_PERSON, new HashSet<>(), new HashSet<>(),
                 new HashSet<>(), tagsToDelete);
-
         assertEquals(tagCommand, expectedTagCommand);
+    }
+
+    // Test invalid format for editing a tag
+    @Test
+    public void parse_invalidEditTag_throwsParseException() {
+        String userInput = "1 " + PREFIX_TAG_EDIT + "Medisave-Prudential";
+
+        // Check if the parser throws a ParseException
+        assertThrows(ParseException.class, () -> parser.parse(userInput));
     }
 
     // Test invalid index format
